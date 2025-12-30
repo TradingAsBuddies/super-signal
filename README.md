@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TradingAsBuddies/super-signal)
+[![PyPI version](https://badge.fury.io/py/super-signal.svg)](https://badge.fury.io/py/super-signal)
 [![COPR](https://copr.fedorainfracloud.org/coprs/tradingasbuddies/super-signal/package/super-signal/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/tradingasbuddies/super-signal/)
 
 A comprehensive stock analysis application that analyzes stocks for various risk factors including country of origin, ADR status, low float, and more.
@@ -17,6 +17,18 @@ A comprehensive stock analysis application that analyzes stocks for various risk
 - 🖥️ Ready for future GUI development
 
 ## Installation
+
+### PyPI (All Platforms)
+
+**Easiest method - works on Windows, macOS, and Linux:**
+
+```bash
+# Install from PyPI
+pip install super-signal
+
+# Run
+super-signal --ticker AAPL
+```
 
 ### Fedora / RHEL / CentOS (RPM)
 
@@ -45,7 +57,9 @@ sudo dnf install ~/rpmbuild/RPMS/noarch/super-signal-2.0.0-1.*.noarch.rpm
 
 See [RPM_PACKAGING.md](RPM_PACKAGING.md) for complete build instructions or [COPR_SETUP.md](COPR_SETUP.md) for publishing to COPR.
 
-### Windows
+### From Source (Development)
+
+**Windows:**
 
 ```batch
 REM 1. Create virtual environment
@@ -58,10 +72,10 @@ REM 3. Install the package
 pip install .
 
 REM 4. Run the application
-stock-screener
+super-signal
 ```
 
-### Linux / macOS
+**Linux / macOS:**
 
 ```bash
 # 1. Create virtual environment
@@ -227,6 +241,28 @@ This installs the package in editable mode with development tools:
 - **New data sources** → Create new file in `super_signal/fetchers/`
 - **Display changes** → `super_signal/formatters/display.py`
 - **Configuration** → `super_signal/config.py`
+
+### Publishing to PyPI
+
+Maintainers can publish new versions to PyPI. See [PYPI_DEPLOYMENT.md](PYPI_DEPLOYMENT.md) for complete instructions.
+
+**Quick publish:**
+```bash
+# Update version in pyproject.toml and super_signal/__init__.py
+# Commit changes and create tag
+git add .
+git commit -m "Release v2.1.0"
+git tag v2.1.0
+git push && git push --tags
+
+# GitHub Actions will automatically build and publish to PyPI
+```
+
+Or manually:
+```bash
+python -m build
+twine upload dist/*
+```
 
 ## Logging
 
