@@ -24,11 +24,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 
-[project.urls]
-Homepage = "https://github.com/TradingAsBuddies/super-signal"
-Repository = "https://github.com/TradingAsBuddies/super-signal"
-Issues = "https://github.com/TradingAsBuddies/super-signal/issues"
-
 dependencies = [
     "yfinance>=0.2.28",
     "requests>=2.31.0",
@@ -36,6 +31,11 @@ dependencies = [
     "lxml>=4.9.0",
     "tzdata>=2023.3",
 ]
+
+[project.urls]
+Homepage = "https://github.com/TradingAsBuddies/super-signal"
+Repository = "https://github.com/TradingAsBuddies/super-signal"
+Issues = "https://github.com/TradingAsBuddies/super-signal/issues"
 
 [project.optional-dependencies]
 dev = [
