@@ -1,7 +1,7 @@
 # Super Signal - Advanced Stock Analysis Tool
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyPI version](https://badge.fury.io/py/super-signal.svg)](https://badge.fury.io/py/super-signal)
 [![COPR](https://copr.fedorainfracloud.org/coprs/tradingasbuddies/super-signal/package/super-signal/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/tradingasbuddies/super-signal/)
 
@@ -286,7 +286,7 @@ Change log level with `--log-level` flag or edit `config.py`.
 
 ## Requirements
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - Internet connection (for fetching stock data)
 - Dependencies: yfinance, requests, beautifulsoup4, lxml, tzdata
 
