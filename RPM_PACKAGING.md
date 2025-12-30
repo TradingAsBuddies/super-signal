@@ -157,47 +157,36 @@ Your package must follow:
 
 ## Creating a COPR Repository
 
-For easier distribution before official Fedora inclusion, use COPR:
+For easier distribution before official Fedora inclusion, use COPR.
 
-### 1. Create COPR Repository
+**See [COPR_SETUP.md](COPR_SETUP.md) for complete COPR setup and build instructions.**
+
+Quick overview:
+
+### 1. Install and Configure COPR CLI
 
 ```bash
-# Install copr-cli
 sudo dnf install copr-cli
-
-# Configure COPR (get API token from https://copr.fedorainfracloud.org/api/)
-# Save to ~/.config/copr
-
-# Create repository
-copr-cli create super-signal \
-    --chroot fedora-39-x86_64 \
-    --chroot fedora-40-x86_64 \
-    --chroot fedora-rawhide-x86_64 \
-    --description "Super Signal - Advanced stock analysis tool"
+# Configure with API token from https://copr.fedorainfracloud.org/api/
 ```
 
-### 2. Build in COPR
+### 2. Create Repository and Build
 
 ```bash
-# Build from SRPM
-copr-cli build super-signal ~/rpmbuild/SRPMS/super-signal-2.0.0-1.*.src.rpm
+# Create repository (one time)
+copr-cli create super-signal --chroot fedora-40-x86_64 ...
 
-# Or build from git
+# Build from GitHub
 copr-cli buildscm super-signal \
     --clone-url https://github.com/TradingAsBuddies/super-signal \
     --spec super-signal.spec \
     --type git
 ```
 
-### 3. Enable Repository for Users
-
-Users can then install with:
+### 3. Users Install with
 
 ```bash
-# Enable COPR repository
 sudo dnf copr enable tradingasbuddies/super-signal
-
-# Install package
 sudo dnf install super-signal
 ```
 

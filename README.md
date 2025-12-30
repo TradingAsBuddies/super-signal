@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TradingAsBuddies/super-signal)
+[![COPR](https://copr.fedorainfracloud.org/coprs/tradingasbuddies/super-signal/package/super-signal/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/tradingasbuddies/super-signal/)
 
 A comprehensive stock analysis application that analyzes stocks for various risk factors including country of origin, ADR status, low float, and more.
 
@@ -19,18 +20,30 @@ A comprehensive stock analysis application that analyzes stocks for various risk
 
 ### Fedora / RHEL / CentOS (RPM)
 
-```bash
-# Build from source (see RPM_PACKAGING.md for details)
-rpmbuild -ba super-signal.spec
+**Option 1: Install from COPR (Recommended)**
 
-# Install the built RPM
-sudo dnf install ~/rpmbuild/RPMS/noarch/super-signal-2.0.0-1.*.noarch.rpm
+```bash
+# Enable COPR repository
+sudo dnf copr enable tradingasbuddies/super-signal
+
+# Install
+sudo dnf install super-signal
 
 # Run
 super-signal --ticker AAPL
 ```
 
-See [RPM_PACKAGING.md](RPM_PACKAGING.md) for complete build instructions and COPR setup.
+**Option 2: Build from Source**
+
+```bash
+# Build RPM (see RPM_PACKAGING.md for details)
+rpmbuild -ba super-signal.spec
+
+# Install the built RPM
+sudo dnf install ~/rpmbuild/RPMS/noarch/super-signal-2.0.0-1.*.noarch.rpm
+```
+
+See [RPM_PACKAGING.md](RPM_PACKAGING.md) for complete build instructions or [COPR_SETUP.md](COPR_SETUP.md) for publishing to COPR.
 
 ### Windows
 
