@@ -128,7 +128,7 @@ def format_header(ticker: str) -> str:
     width = DISPLAY_CONFIG.summary_width
     line = DISPLAY_CONFIG.horizontal_line * width
 
-    title = f" — {ANSIColor.NEGATIVE.value}{ticker}{ANSIColor.RESET.value} — "
+    title = f" - {ANSIColor.NEGATIVE.value}{ticker}{ANSIColor.RESET.value} - "
     centered_title = title.center(width)
 
     return f"\n{line}\n{centered_title}\n{line}"
@@ -144,9 +144,9 @@ def format_risk_flags(risk_analysis: RiskAnalysis) -> str:
         Formatted risk flag string
     """
     if risk_analysis.has_risks:
-        flag_text = f"{ANSIColor.RED.value}⚠  POTENTIAL HIGH RISKS ⚠{ANSIColor.RESET.value}"
+        flag_text = f"{ANSIColor.RED.value}!  POTENTIAL HIGH RISKS !{ANSIColor.RESET.value}"
     else:
-        flag_text = f"{ANSIColor.BRIGHT_BLUE.value}No Major Flags Detected 🎉{ANSIColor.RESET.value}"
+        flag_text = f"{ANSIColor.BRIGHT_BLUE.value}No Major Flags Detected{ANSIColor.RESET.value}"
 
     return f"{FIELD_LABELS['flag_risk']:20}: {flag_text}"
 
@@ -425,7 +425,7 @@ def format_risk_details(risk_analysis: RiskAnalysis) -> str:
     ]
 
     for flag in risk_analysis.flags:
-        lines.append(f" 🚩 -> {flag.message}")
+        lines.append(f" [!] -> {flag.message}")
 
     return "\n".join(lines)
 
