@@ -5,8 +5,9 @@ display settings, ANSI colors, and logging configuration.
 """
 
 import logging
+import sys
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 
@@ -73,6 +74,29 @@ class ANSIColor(Enum):
 
 # --- Display Configuration ---
 
+def _get_safe_horizontal_line() -> str:
+    """Get a horizontal line character safe for the terminal encoding.
+
+    Returns Unicode box-drawing character if the terminal supports it,
+    otherwise returns ASCII hyphen as fallback.
+
+    Returns:
+        Horizontal line character (either "─" or "-")
+    """
+    try:
+        # Check if stdout encoding supports Unicode
+        encoding = sys.stdout.encoding or 'ascii'
+
+        # Try to encode the Unicode box-drawing character
+        test_char = "─"
+        test_char.encode(encoding)
+
+        return test_char
+    except (UnicodeEncodeError, LookupError, AttributeError):
+        # Fallback to ASCII hyphen if Unicode isn't supported
+        return "-"
+
+
 @dataclass
 class DisplayConfig:
     """Display formatting configuration.
@@ -87,7 +111,7 @@ class DisplayConfig:
     summary_width: int = 70
     label_width: int = 20
     max_field_width: int = 40
-    horizontal_line: str = "─"
+    horizontal_line: str = field(default_factory=_get_safe_horizontal_line)
     directors_max_count: int = 10
 
 
