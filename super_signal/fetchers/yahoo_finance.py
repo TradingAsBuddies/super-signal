@@ -6,6 +6,7 @@ including fetching stock information, cash flow data, and split history.
 
 import logging
 import datetime
+import numbers
 from typing import Optional
 import yfinance as yf
 
@@ -147,7 +148,7 @@ def get_operating_cash_flow(ticker_obj: yf.Ticker) -> Optional[float]:
             return None
 
         latest = series.iloc[0]
-        if isinstance(latest, (int, float)):
+        if isinstance(latest, numbers.Number):
             return float(latest)
 
         return None
