@@ -1,5 +1,9 @@
 # Super Signal - Advanced Stock Analysis Tool
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/TradingAsBuddies/super-signal)
+
 A comprehensive stock analysis application that analyzes stocks for various risk factors including country of origin, ADR status, low float, and more.
 
 ## Features
@@ -246,8 +250,20 @@ pip install --force-reinstall .
 
 ## License
 
-This project is provided as-is for educational and personal use.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
-This is a personal project. Feel free to fork and customize for your needs.
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## Acknowledgments
+
+- Built with [yfinance](https://github.com/ranaroussi/yfinance) for Yahoo Finance data
+- Web scraping powered by [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
+- 🤖 Refactored with assistance from [Claude Code](https://claude.com/claude-code)
