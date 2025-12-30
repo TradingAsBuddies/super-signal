@@ -17,6 +17,21 @@ A comprehensive stock analysis application that analyzes stocks for various risk
 
 ## Installation
 
+### Fedora / RHEL / CentOS (RPM)
+
+```bash
+# Build from source (see RPM_PACKAGING.md for details)
+rpmbuild -ba super-signal.spec
+
+# Install the built RPM
+sudo dnf install ~/rpmbuild/RPMS/noarch/super-signal-2.0.0-1.*.noarch.rpm
+
+# Run
+super-signal --ticker AAPL
+```
+
+See [RPM_PACKAGING.md](RPM_PACKAGING.md) for complete build instructions and COPR setup.
+
 ### Windows
 
 ```batch

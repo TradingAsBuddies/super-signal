@@ -28,7 +28,9 @@ MANIFEST
 
 # PyInstaller
 *.manifest
-*.spec
+# *.spec  # Commented out to allow RPM spec files
+# But we want to ignore PyInstaller .spec files, not RPM .spec files
+# PyInstaller specs are typically named *.spec in the root or build dirs
 
 # Installer logs
 pip-log.txt
