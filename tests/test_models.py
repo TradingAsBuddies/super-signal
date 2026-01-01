@@ -123,6 +123,32 @@ class TestStockInfo:
         )
         assert stock.percent_off_52week_high() is None
 
+    def test_relative_volume_calculation(self):
+        """Test relative_volume() calculation."""
+        stock = StockInfo(
+            ticker="TEST",
+            volume=2000000,
+            average_volume_10days=1000000
+        )
+        assert stock.relative_volume() == 2.0
+
+    def test_relative_volume_returns_none_when_missing_data(self):
+        """Test relative_volume() returns None when data missing."""
+        stock = StockInfo(ticker="TEST", volume=1000)
+        assert stock.relative_volume() is None
+
+        stock = StockInfo(ticker="TEST", average_volume_10days=1000)
+        assert stock.relative_volume() is None
+
+    def test_relative_volume_handles_zero_average(self):
+        """Test relative_volume() handles zero average volume."""
+        stock = StockInfo(
+            ticker="TEST",
+            volume=1000,
+            average_volume_10days=0
+        )
+        assert stock.relative_volume() is None
+
 
 class TestRiskFlag:
     """Tests for RiskFlag model."""

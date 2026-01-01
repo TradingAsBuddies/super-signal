@@ -303,6 +303,10 @@ def format_trading_info(stock_info: StockInfo, float_threshold: int) -> str:
     """
     lines = []
 
+    rel_vol = stock_info.relative_volume()
+    rel_vol_str = f"{rel_vol:.2f}" if rel_vol is not None else ""
+    lines.append(f"{FIELD_LABELS['relative_volume']:20}: {rel_vol_str}")
+
     avg_vol = format_number(stock_info.average_volume_10days)
     lines.append(f"{FIELD_LABELS['avg_volume_10d']:20}: {avg_vol}")
 

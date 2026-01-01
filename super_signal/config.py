@@ -138,6 +138,7 @@ FIELD_LABELS = {
     "week_52_high": "52W High ------------ ",
     "week_52_low": "52W Low ------------- ",
     "pct_off_high": "% Off 52W High ------ ",
+    "relative_volume": "Relative Volume ------- ",
     "avg_volume_10d": "Avg Volume (10D) ---- ",
     "shares_outstanding": "Shares Outstanding -- ",
     "float": "Float --------------- ",

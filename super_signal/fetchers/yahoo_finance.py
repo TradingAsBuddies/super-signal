@@ -79,6 +79,7 @@ def fetch_stock_info(ticker: str) -> Optional[StockInfo]:
             last_split_date=info.get("lastSplitDate"),
             operating_cash_flow=op_cash_flow,
             last_split_display=last_split_display,
+            volume=info.get("volume") or info.get("regularMarketVolume"),
         )
 
         logger.info(f"Successfully fetched info for {ticker}")

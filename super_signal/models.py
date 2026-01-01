@@ -93,6 +93,7 @@ class StockInfo:
     operating_cash_flow: Optional[float] = None
     last_split_display: str = ""
     is_adr: bool = False
+    volume: Optional[float] = None
     directors: List[str] = field(default_factory=list)
 
     def get_country(self) -> str:
@@ -143,6 +144,19 @@ class StockInfo:
         price = self.get_price()
         if price and self.fifty_two_week_high and self.fifty_two_week_high > 0:
             return (price / self.fifty_two_week_high - 1) * 100
+        return None
+
+    def relative_volume(self) -> Optional[float]:
+        """Calculate relative volume (current volume / 10-day average volume).
+
+        Returns:
+            Relative volume ratio (e.g., 2.5 means 2.5x normal volume),
+            or None if data is missing.
+        """
+        if (self.volume is not None and
+            self.average_volume_10days is not None and
+            self.average_volume_10days > 0):
+            return self.volume / self.average_volume_10days
         return None
 
 

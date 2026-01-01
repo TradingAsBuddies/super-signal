@@ -117,6 +117,7 @@ class TestFetchStockInfo:
             'heldPercentInstitutions': 0.6,
             'lastSplitFactor': '2:1',
             'lastSplitDate': 1609459200,
+            'volume': 5000000,
         }
         mock_ticker.cashflow = None
         mock_ticker.splits = pd.Series()
@@ -128,6 +129,7 @@ class TestFetchStockInfo:
         assert result.long_name == 'Test Inc.'
         assert result.country == 'United States'
         assert result.market_cap == 1000000000
+        assert result.volume == 5000000
         assert result.website == 'https://test.com'
 
 
