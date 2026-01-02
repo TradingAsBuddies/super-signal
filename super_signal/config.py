@@ -30,7 +30,7 @@ class RiskThresholds:
 # Default risk detection thresholds
 RED_FLAGS = RiskThresholds(
     risky_countries=["RU", "CN", "IR"],
-    risky_headquarters_keywords=["Cayman", "BVI"],
+    risky_headquarters_keywords=["Cayman", "BVI", "SpA", "India", "China"],
     min_free_float=3_000_000,
 )
 
