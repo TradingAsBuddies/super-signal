@@ -46,6 +46,49 @@ def format_percent(v: Optional[float]) -> str:
     return str(v) if v is not None else ""
 
 
+def calculate_relative_volume(
+    current_volume: Optional[float],
+    avg_volume: Optional[float]
+) -> Optional[float]:
+    """Calculate relative volume (RVOL).
+
+    Args:
+        current_volume: Current day's trading volume
+        avg_volume: Average volume (typically 10-day)
+
+    Returns:
+        Relative volume ratio, or None if cannot calculate
+    """
+    if (isinstance(current_volume, (int, float)) and
+            isinstance(avg_volume, (int, float)) and
+            avg_volume > 0):
+        return current_volume / avg_volume
+    return None
+
+
+def format_relative_volume(rvol: Optional[float]) -> str:
+    """Format relative volume with color coding.
+
+    Args:
+        rvol: Relative volume ratio
+
+    Returns:
+        Formatted and colorized RVOL string
+    """
+    if rvol is None:
+        return ""
+
+    rvol_str = f"{rvol:.2f}x"
+
+    # Color code: green for high volume (>1.5x), yellow for low (<0.5x)
+    if rvol >= 1.5:
+        return f"{ANSIColor.LIGHT_GREEN.value}{rvol_str}{ANSIColor.RESET.value}"
+    elif rvol < 0.5:
+        return f"{ANSIColor.YELLOW.value}{rvol_str}{ANSIColor.RESET.value}"
+
+    return rvol_str
+
+
 def colorize_country(country: str) -> str:
     """Colorize country name (red if non-US).
 
@@ -303,8 +346,17 @@ def format_trading_info(stock_info: StockInfo, float_threshold: int) -> str:
     """
     lines = []
 
+    # Average volume with relative volume
     avg_vol = format_number(stock_info.average_volume_10days)
-    lines.append(f"{FIELD_LABELS['avg_volume_10d']:20}: {avg_vol}")
+    rvol = calculate_relative_volume(
+        stock_info.regular_market_volume,
+        stock_info.average_volume_10days
+    )
+    rvol_str = format_relative_volume(rvol)
+    if rvol_str:
+        lines.append(f"{FIELD_LABELS['avg_volume_10d']:20}: {avg_vol} (RVOL: {rvol_str})")
+    else:
+        lines.append(f"{FIELD_LABELS['avg_volume_10d']:20}: {avg_vol}")
 
     shares_out = format_number(stock_info.shares_outstanding)
     lines.append(f"{FIELD_LABELS['shares_outstanding']:20}: {shares_out}")

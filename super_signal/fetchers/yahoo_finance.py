@@ -74,6 +74,7 @@ def fetch_stock_info(ticker: str) -> Optional[StockInfo]:
             fifty_two_week_high=info.get("fiftyTwoWeekHigh"),
             fifty_two_week_low=info.get("fiftyTwoWeekLow"),
             average_volume_10days=info.get("averageVolume10days"),
+            regular_market_volume=info.get("regularMarketVolume") or info.get("volume"),
             shares_outstanding=info.get("sharesOutstanding"),
             float_shares=info.get("floatShares"),
             total_debt=info.get("totalDebt") or info.get("debtToEquity", 0),

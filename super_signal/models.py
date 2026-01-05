@@ -41,6 +41,7 @@ class StockInfo:
         fifty_two_week_high: 52-week high price
         fifty_two_week_low: 52-week low price
         average_volume_10days: 10-day average trading volume
+        regular_market_volume: Current day's trading volume
         shares_outstanding: Total shares outstanding
         float_shares: Publicly traded shares (float)
         total_debt: Total company debt
@@ -78,6 +79,7 @@ class StockInfo:
     fifty_two_week_high: Optional[float] = None
     fifty_two_week_low: Optional[float] = None
     average_volume_10days: Optional[float] = None
+    regular_market_volume: Optional[float] = None
     shares_outstanding: Optional[float] = None
     float_shares: Optional[float] = None
     total_debt: Optional[float] = None
