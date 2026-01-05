@@ -7,6 +7,7 @@ This package provides modules for fetching data from:
 
 from .yahoo_finance import (
     fetch_stock_info,
+    fetch_vix,
     is_adr_yahoo,
     get_operating_cash_flow,
     get_last_split_details,
@@ -19,6 +20,7 @@ from .finviz import (
 
 __all__ = [
     "fetch_stock_info",
+    "fetch_vix",
     "is_adr_yahoo",
     "get_operating_cash_flow",
     "get_last_split_details",

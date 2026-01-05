@@ -5,6 +5,7 @@ import pytest
 from super_signal.formatters.display import (
     calculate_relative_volume,
     format_relative_volume,
+    format_vix,
     format_number,
     format_percent,
 )
@@ -123,6 +124,72 @@ class TestFormatRelativeVolume:
         """Test formatting very low RVOL."""
         result = format_relative_volume(0.1)
         assert "0.10x" in result
+        assert ANSIColor.YELLOW.value in result
+
+
+class TestFormatVix:
+    """Tests for VIX formatting."""
+
+    def test_format_vix_none(self):
+        """Test formatting None VIX."""
+        result = format_vix(None)
+        assert result == ""
+
+    def test_format_vix_low_volatility_green(self):
+        """Test formatting low VIX (green color)."""
+        result = format_vix(12.5)
+        assert "12.50" in result
+        assert ANSIColor.LIGHT_GREEN.value in result
+        assert ANSIColor.RESET.value in result
+
+    def test_format_vix_at_low_threshold(self):
+        """Test formatting VIX at low threshold (15)."""
+        result = format_vix(15.0)
+        assert "15.00" in result
+        assert ANSIColor.YELLOW.value in result
+
+    def test_format_vix_moderate_volatility_yellow(self):
+        """Test formatting moderate VIX (yellow color)."""
+        result = format_vix(20.0)
+        assert "20.00" in result
+        assert ANSIColor.YELLOW.value in result
+        assert ANSIColor.RESET.value in result
+
+    def test_format_vix_at_high_threshold(self):
+        """Test formatting VIX at high threshold (25)."""
+        result = format_vix(25.0)
+        assert "25.00" in result
+        assert ANSIColor.RED.value in result
+
+    def test_format_vix_high_volatility_red(self):
+        """Test formatting high VIX (red color)."""
+        result = format_vix(35.0)
+        assert "35.00" in result
+        assert ANSIColor.RED.value in result
+        assert ANSIColor.RESET.value in result
+
+    def test_format_vix_very_low(self):
+        """Test formatting very low VIX."""
+        result = format_vix(9.5)
+        assert "9.50" in result
+        assert ANSIColor.LIGHT_GREEN.value in result
+
+    def test_format_vix_extreme_high(self):
+        """Test formatting extreme VIX (market panic)."""
+        result = format_vix(80.0)
+        assert "80.00" in result
+        assert ANSIColor.RED.value in result
+
+    def test_format_vix_just_below_moderate(self):
+        """Test formatting VIX just below moderate threshold."""
+        result = format_vix(14.99)
+        assert "14.99" in result
+        assert ANSIColor.LIGHT_GREEN.value in result
+
+    def test_format_vix_just_below_high(self):
+        """Test formatting VIX just below high threshold."""
+        result = format_vix(24.99)
+        assert "24.99" in result
         assert ANSIColor.YELLOW.value in result
 
 

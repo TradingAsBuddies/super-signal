@@ -8,7 +8,7 @@ import os
 import sys
 import logging
 
-from .fetchers.yahoo_finance import fetch_stock_info, is_adr_yahoo
+from .fetchers.yahoo_finance import fetch_stock_info, fetch_vix, is_adr_yahoo
 from .fetchers.finviz import determine_adr_status, get_directors
 from .analyzers import analyze_stock_risks
 from .formatters.display import print_stock_summary
@@ -73,11 +73,15 @@ def run_for_ticker(ticker_symbol: str) -> bool:
         # Analyze risks
         risk_analysis = analyze_stock_risks(stock_info)
 
+        # Fetch VIX index
+        vix_value = fetch_vix()
+
         # Display results
         print_stock_summary(
             stock_info,
             risk_analysis,
-            RED_FLAGS.min_free_float
+            RED_FLAGS.min_free_float,
+            vix_value
         )
 
         logger.info(f"Successfully completed screening for {ticker_symbol}")

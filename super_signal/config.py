@@ -148,6 +148,7 @@ FIELD_LABELS = {
     "employees": "Employee Count ------ ",
     "website": "Homepage ------------ ",
     "timestamp": "As Of (EST) --------- ",
+    "vix": "VIX Index ----------- ",
 }
 
 

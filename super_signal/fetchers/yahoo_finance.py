@@ -248,3 +248,41 @@ def get_last_split_details(ticker_obj: yf.Ticker, info: dict) -> str:
         logger.debug(f"Error retrieving split details: {e}")
 
     return ""
+
+
+def fetch_vix() -> Optional[float]:
+    """Fetch the current VIX (CBOE Volatility Index) value.
+
+    Returns:
+        Current VIX value, or None if fetch fails.
+    """
+    cache = get_cache()
+
+    # Check cache first (VIX is cached under ticker "^VIX")
+    cached = cache.get_stock_info("^VIX")
+    if cached is not None and cached.regular_market_price is not None:
+        return cached.regular_market_price
+
+    try:
+        logger.info("Fetching VIX index")
+        vix = yf.Ticker("^VIX")
+        info = vix.info
+
+        if not info:
+            logger.warning("No VIX data returned")
+            return None
+
+        price = info.get("regularMarketPrice") or info.get("price")
+
+        if price is not None:
+            # Cache it as a minimal StockInfo
+            from ..models import StockInfo
+            vix_info = StockInfo(ticker="^VIX", regular_market_price=price)
+            cache.set_stock_info(vix_info)
+            logger.info(f"VIX fetched: {price}")
+
+        return price
+
+    except Exception as e:
+        logger.warning(f"Error fetching VIX: {e}")
+        return None

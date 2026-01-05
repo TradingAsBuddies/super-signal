@@ -89,6 +89,33 @@ def format_relative_volume(rvol: Optional[float]) -> str:
     return rvol_str
 
 
+def format_vix(vix_value: Optional[float]) -> str:
+    """Format VIX value with color coding based on volatility level.
+
+    Args:
+        vix_value: Current VIX index value
+
+    Returns:
+        Formatted and colorized VIX string
+
+    Color coding:
+        - Green: VIX < 15 (low volatility)
+        - Yellow: 15 <= VIX < 25 (moderate volatility)
+        - Red: VIX >= 25 (high volatility)
+    """
+    if vix_value is None:
+        return ""
+
+    vix_str = f"{vix_value:.2f}"
+
+    if vix_value >= 25:
+        return f"{ANSIColor.RED.value}{vix_str}{ANSIColor.RESET.value}"
+    elif vix_value >= 15:
+        return f"{ANSIColor.YELLOW.value}{vix_str}{ANSIColor.RESET.value}"
+    else:
+        return f"{ANSIColor.LIGHT_GREEN.value}{vix_str}{ANSIColor.RESET.value}"
+
+
 def colorize_country(country: str) -> str:
     """Colorize country name (red if non-US).
 
@@ -485,7 +512,8 @@ def format_risk_details(risk_analysis: RiskAnalysis) -> str:
 def print_stock_summary(
     stock_info: StockInfo,
     risk_analysis: RiskAnalysis,
-    float_threshold: int
+    float_threshold: int,
+    vix_value: Optional[float] = None
 ) -> None:
     """Print comprehensive stock summary with formatting and colors.
 
@@ -493,6 +521,7 @@ def print_stock_summary(
         stock_info: Stock information
         risk_analysis: Risk analysis results
         float_threshold: Minimum float threshold for risk highlighting
+        vix_value: Current VIX index value (optional)
     """
     print(format_header(stock_info.ticker))
     print(format_risk_flags(risk_analysis))
@@ -504,6 +533,8 @@ def print_stock_summary(
     print(format_financial_info(stock_info))
     print(format_company_info(stock_info))
     print(format_timestamp())
+    if vix_value is not None:
+        print(f"{FIELD_LABELS['vix']:20}: {format_vix(vix_value)}")
     print()
     print(format_executives(stock_info.directors))
     print(DISPLAY_CONFIG.horizontal_line * DISPLAY_CONFIG.summary_width)
