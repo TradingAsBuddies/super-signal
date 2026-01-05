@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from ..config import NETWORK_CONFIG
+from ..cache import get_cache
 
 logger = logging.getLogger("super_signal.fetchers.finviz")
 
@@ -23,6 +24,14 @@ def is_adr_finviz(ticker: str) -> Optional[bool]:
     Returns:
         True if ADR, False if not, None if unable to determine.
     """
+    ticker = ticker.upper()
+    cache = get_cache()
+
+    # Check cache first
+    cached_result, cache_hit = cache.get_adr_status(ticker)
+    if cache_hit:
+        return cached_result
+
     url = f"https://finviz.com/quote.ashx?t={ticker}"
     headers = {"User-Agent": NETWORK_CONFIG.user_agent}
 
@@ -59,8 +68,10 @@ def is_adr_finviz(ticker: str) -> Optional[bool]:
         # Check for ADR indicators
         if " adr" in combined or "american depositary" in combined:
             logger.info(f"{ticker} identified as ADR on FinViz")
+            cache.set_adr_status(ticker, True)
             return True
 
+        cache.set_adr_status(ticker, False)
         return False
 
     except requests.RequestException as e:
@@ -81,6 +92,15 @@ def get_directors(ticker: str, max_count: int = 10) -> List[str]:
     Returns:
         List of director names and titles, or empty list if unavailable.
     """
+    ticker = ticker.upper()
+    cache = get_cache()
+
+    # Check cache first
+    cached_directors, cache_hit = cache.get_directors(ticker)
+    if cache_hit:
+        # Apply max_count limit to cached result
+        return cached_directors[:max_count] if cached_directors else []
+
     url = f"https://finance.yahoo.com/quote/{ticker}/profile/"
     headers = {"User-Agent": NETWORK_CONFIG.user_agent}
 
@@ -127,6 +147,10 @@ def get_directors(ticker: str, max_count: int = 10) -> List[str]:
                 break
 
         logger.info(f"Found {len(directors)} director(s) for {ticker}")
+
+        # Cache the result
+        cache.set_directors(ticker, directors)
+
         return directors
 
     except requests.RequestException as e:

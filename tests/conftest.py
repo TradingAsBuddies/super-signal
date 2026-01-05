@@ -2,6 +2,15 @@
 
 import pytest
 from super_signal.models import StockInfo, RiskFlag, RiskAnalysis, RiskSeverity
+from super_signal.cache import clear_cache
+
+
+@pytest.fixture(autouse=True)
+def clear_cache_between_tests():
+    """Clear the cache before and after each test to avoid test pollution."""
+    clear_cache()
+    yield
+    clear_cache()
 
 
 @pytest.fixture

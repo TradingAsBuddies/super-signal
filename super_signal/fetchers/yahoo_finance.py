@@ -12,6 +12,7 @@ import yfinance as yf
 
 from ..models import StockInfo
 from ..config import US_COUNTRY_VARIATIONS
+from ..cache import get_cache
 
 logger = logging.getLogger("super_signal.fetchers.yahoo_finance")
 
@@ -28,6 +29,14 @@ def fetch_stock_info(ticker: str) -> Optional[StockInfo]:
     Raises:
         None - errors are logged and None is returned.
     """
+    ticker = ticker.upper()
+    cache = get_cache()
+
+    # Check cache first
+    cached = cache.get_stock_info(ticker)
+    if cached is not None:
+        return cached
+
     try:
         logger.info(f"Fetching stock info for {ticker}")
         stock = yf.Ticker(ticker)
@@ -82,6 +91,10 @@ def fetch_stock_info(ticker: str) -> Optional[StockInfo]:
         )
 
         logger.info(f"Successfully fetched info for {ticker}")
+
+        # Cache the result
+        cache.set_stock_info(stock_info)
+
         return stock_info
 
     except Exception as e:
