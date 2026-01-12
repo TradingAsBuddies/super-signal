@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 from ..models import StockInfo, RiskAnalysis
 from ..config import ANSIColor, DISPLAY_CONFIG, FIELD_LABELS, US_COUNTRY_VARIATIONS
+from ..fetchers import yahoo_finance as yf_fetch
 
 
 def format_number(n: Optional[float]) -> str:
@@ -456,6 +457,17 @@ def print_stock_summary(
     print(format_financial_info(stock_info))
     print(format_company_info(stock_info))
     print(format_timestamp())
+
+    # VIX index (global market volatility indicator)
+    vix_value = None
+    try:
+        vix_value = yf_fetch.fetch_vix_value()
+    except Exception:
+        vix_value = None
+
+    vix_display = f"{vix_value:.2f}" if isinstance(vix_value, (int, float)) else (str(vix_value) if vix_value is not None else "")
+    print(f"{FIELD_LABELS['vix']:20}: {vix_display}")
+
     print()
     print(format_executives(stock_info.directors))
     print(DISPLAY_CONFIG.horizontal_line * DISPLAY_CONFIG.summary_width)

@@ -58,6 +58,42 @@ class TestRiskAnalyzer:
         assert analyzer.config is not None
         assert hasattr(analyzer.config, 'risky_countries')
         assert hasattr(analyzer.config, 'min_free_float')
+        assert hasattr(analyzer.config, 'min_average_volume')
+        assert hasattr(analyzer.config, 'min_relative_volume')
+
+    def test_analyze_average_volume_risk_normal(self, sample_us_stock):
+        """Test average volume risk for normal AVOL."""
+        analyzer = RiskAnalyzer()
+        flags = analyzer.analyze_average_volume_risk(sample_us_stock)
+        assert len(flags) == 0
+
+    def test_analyze_average_volume_risk_low(self):
+        """Test average volume risk for low AVOL (under threshold)."""
+        analyzer = RiskAnalyzer()
+        stock = StockInfo(ticker="LOWAV", average_volume_10days=500_000)
+        flags = analyzer.analyze_average_volume_risk(stock)
+        assert len(flags) == 1
+        assert flags[0].flag_type == "average_volume"
+        assert "Average volume below" in flags[0].message
+        assert flags[0].severity == RiskSeverity.HIGH
+
+    def test_analyze_relative_volume_risk_normal(self):
+        """Test relative-volume risk for normal relative volumes (>= threshold)."""
+        analyzer = RiskAnalyzer()
+        stock = StockInfo(ticker="NOR", volume=3_000_000, average_volume_10days=1_000_000)
+        flags = analyzer.analyze_relative_volume_risk(stock)
+        assert len(flags) == 0
+
+    def test_analyze_relative_volume_risk_low(self):
+        """Test relative-volume risk for low relative volume (< threshold)."""
+        analyzer = RiskAnalyzer()
+        stock = StockInfo(ticker="LOWRV", volume=500_000, average_volume_10days=1_000_000)
+        flags = analyzer.analyze_relative_volume_risk(stock)
+        assert len(flags) == 1
+        assert flags[0].flag_type == "relative_volume"
+        assert "Relative Volume below" in flags[0].message
+        assert flags[0].severity == RiskSeverity.HIGH
+
 
     def test_analyze_country_risk_us_stock(self, sample_us_stock):
         """Test country risk analysis for US stock."""
@@ -176,6 +212,7 @@ class TestRiskAnalyzer:
             exchange="NYSE",
             float_shares=2000000,  # Low float
             is_adr=True,  # ADR
+            average_volume_10days=500000,  # Low AVOL - high risk
         )
 
         analyzer = RiskAnalyzer()

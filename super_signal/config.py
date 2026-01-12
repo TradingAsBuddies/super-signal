@@ -21,10 +21,13 @@ class RiskThresholds:
         risky_countries: List of country codes considered high-risk
         risky_headquarters_keywords: Keywords in HQ location that indicate risk
         min_free_float: Minimum float shares to avoid illiquidity risk
+        min_average_volume: Minimum average daily volume (10d) to avoid low-liquidity risk
     """
     risky_countries: List[str]
     risky_headquarters_keywords: List[str]
     min_free_float: int
+    min_average_volume: int = 1_000_000
+    min_relative_volume: float = 2.0
 
 
 # Default risk detection thresholds
@@ -32,6 +35,8 @@ RED_FLAGS = RiskThresholds(
     risky_countries=["RU", "CN", "IR"],
     risky_headquarters_keywords=["Cayman", "BVI"],
     min_free_float=3_000_000,
+    min_average_volume=1_000_000,
+    min_relative_volume=2.0,
 )
 
 
@@ -149,6 +154,7 @@ FIELD_LABELS = {
     "employees": "Employee Count ------ ",
     "website": "Homepage ------------ ",
     "timestamp": "As Of (EST) --------- ",
+    "vix": "VIX ----------------- ",
 }
 
 

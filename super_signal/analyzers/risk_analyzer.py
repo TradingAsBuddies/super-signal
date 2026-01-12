@@ -126,6 +126,59 @@ class RiskAnalyzer:
 
         return flags
 
+    def analyze_average_volume_risk(self, stock_info: StockInfo) -> List[RiskFlag]:
+        """Analyze average volume (10-day) risk.
+
+        Low average volume can indicate low liquidity and higher execution risk.
+
+        Args:
+            stock_info: Stock information to analyze
+
+        Returns:
+            List of risk flags related to average volume.
+        """
+        flags = []
+        avol = stock_info.average_volume_10days
+
+        if avol is None:
+            return flags
+
+        if isinstance(avol, (int, float)) and avol < self.config.min_average_volume:
+            flags.append(RiskFlag(
+                flag_type="average_volume",
+                message=f"Average volume below {self.config.min_average_volume / 1_000_000:.1f}M (low liquidity)",
+                severity=RiskSeverity.HIGH
+            ))
+
+        return flags
+
+    def analyze_relative_volume_risk(self, stock_info: StockInfo) -> List[RiskFlag]:
+        """Analyze 1-day relative volume risk.
+
+        If today's volume is significantly below normal (relative < threshold),
+        it indicates low liquidity and execution risk.
+
+        Args:
+            stock_info: Stock information to analyze
+
+        Returns:
+            List of risk flags related to relative volume.
+        """
+        flags = []
+        rel = stock_info.relative_volume()
+
+        if rel is None:
+            return flags
+
+        if isinstance(rel, (int, float)) and rel < self.config.min_relative_volume:
+            flags.append(RiskFlag(
+                flag_type="relative_volume",
+                message=f"1D Relative Volume below {self.config.min_relative_volume:.1f} (low liquidity)",
+                severity=RiskSeverity.HIGH
+            ))
+
+        return flags
+
     def analyze_adr_risk(self, stock_info: StockInfo) -> List[RiskFlag]:
         """Analyze ADR-related risk factors.
 
@@ -164,9 +217,10 @@ class RiskAnalyzer:
         hq_flags = self.analyze_headquarters_risk(stock_info)
         float_flags = self.analyze_float_risk(stock_info)
         adr_flags = self.analyze_adr_risk(stock_info)
+        avg_vol_flags = self.analyze_average_volume_risk(stock_info)
 
         # Combine all flags
-        all_flags = country_flags + hq_flags + float_flags + adr_flags
+        all_flags = country_flags + hq_flags + float_flags + adr_flags + avg_vol_flags
 
         # Add flags to analysis
         for flag in all_flags:

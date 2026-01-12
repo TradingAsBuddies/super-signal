@@ -235,3 +235,30 @@ def get_last_split_details(ticker_obj: yf.Ticker, info: dict) -> str:
         logger.debug(f"Error retrieving split details: {e}")
 
     return ""
+
+
+def fetch_vix_value() -> Optional[float]:
+    """Fetch the current VIX index value from Yahoo Finance.
+
+    Returns:
+        VIX value as a float, or None if unavailable.
+    """
+    try:
+        vix_ticker = yf.Ticker("^VIX")
+        info = vix_ticker.info or {}
+
+        # Try common fields first
+        value = info.get("regularMarketPrice") or info.get("previousClose") or info.get("open")
+        if value is not None:
+            return float(value)
+
+        # Fall back to intraday history
+        hist = vix_ticker.history(period="1d", interval="1m")
+        if hist is not None and not hist.empty:
+            last = hist["Close"].dropna().iloc[-1]
+            return float(last)
+
+    except Exception as e:
+        logger.debug(f"Error fetching VIX index: {e}")
+
+    return None
