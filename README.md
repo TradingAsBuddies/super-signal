@@ -30,6 +30,21 @@ pip install super-signal
 super-signal --ticker AAPL
 ```
 
+### From GitHub (Latest Development Version)
+
+**Install directly from GitHub using pip:**
+
+```bash
+# Install latest from main branch
+pip install git+https://github.com/TradingAsBuddies/super-signal.git
+
+# Install a specific version/tag
+pip install git+https://github.com/TradingAsBuddies/super-signal.git@v2.5.0
+
+# Install a specific branch
+pip install git+https://github.com/TradingAsBuddies/super-signal.git@feature/branch-name
+```
+
 ### Fedora / RHEL / CentOS (RPM)
 
 **Option 1: Install from COPR (Recommended)**
@@ -141,6 +156,14 @@ super-signal
 
 # Check a single stock
 super-signal --ticker TSLA
+
+# Check multiple stocks at once
+super-signal -t AAPL -t GOOG -t MSFT
+super-signal -t AAPL,GOOG,MSFT
+
+# Output formats: text (default), json, csv
+super-signal -t AAPL,GOOG -f json
+super-signal -t AAPL,GOOG -f csv
 
 # Change log level
 super-signal --log-level DEBUG --ticker NVDA
@@ -279,8 +302,8 @@ Change log level with `--log-level` flag or edit `config.py`.
 - [ ] Desktop GUI using tkinter or PyQt5
 - [ ] Database storage for historical analysis
 - [ ] Additional data sources (SEC filings, etc.)
-- [ ] Portfolio screening (multiple tickers at once)
-- [ ] Export to CSV/Excel
+- [x] ~~Portfolio screening (multiple tickers at once)~~ ✅ Added in v2.5.0
+- [x] ~~Export to CSV/Excel~~ ✅ Added in v2.4.0
 - [ ] Custom risk profiles
 - [ ] Email/alert notifications
 
