@@ -7,6 +7,7 @@ This module sets up logging and launches the appropriate interface
 import sys
 import argparse
 
+from . import __version__
 from .config import setup_logging
 from .cli import run_cli
 
@@ -19,6 +20,13 @@ def parse_arguments():
     """
     parser = argparse.ArgumentParser(
         description="Super Signal - Advanced stock analysis with risk factor detection"
+    )
+
+    parser.add_argument(
+        "--version",
+        "-V",
+        action="version",
+        version=f"%(prog)s {__version__}"
     )
 
     parser.add_argument(
