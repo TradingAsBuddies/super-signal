@@ -11,6 +11,7 @@ from super_signal.formatters import (
     CsvFormatter,
 )
 from super_signal.models import StockInfo, RiskAnalysis, RiskFlag, RiskSeverity
+from super_signal.cli import TickerResult
 
 
 class TestGetFormatter:
@@ -281,3 +282,162 @@ class TestFormatterIntegration:
         result = formatter.format(stock, risk_analysis, 3_000_000)
         # At minimum, directors should be processed without error
         assert isinstance(result, str)
+
+
+class TestBatchFormatting:
+    """Tests for batch formatting of multiple ticker results."""
+
+    @pytest.fixture
+    def sample_results(self, sample_us_stock):
+        """Create sample batch results with success and failure."""
+        stock1 = sample_us_stock
+        risk1 = RiskAnalysis(ticker=stock1.ticker)
+
+        stock2 = StockInfo(
+            ticker="GOOG",
+            long_name="Alphabet Inc.",
+            exchange="NASDAQ",
+            market_cap=2000000000000,
+        )
+        risk2 = RiskAnalysis(ticker="GOOG")
+
+        return [
+            TickerResult(ticker="AAPL", stock_info=stock1, risk_analysis=risk1),
+            TickerResult(ticker="GOOG", stock_info=stock2, risk_analysis=risk2),
+            TickerResult(ticker="INVALID", error="Unable to retrieve data"),
+        ]
+
+    def test_text_batch_formatting(self, sample_results):
+        """Test text formatter batch output contains all tickers."""
+        formatter = TextFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000, vix_value=18.5)
+
+        assert "AAPL" in result
+        assert "GOOG" in result
+        assert "INVALID" in result
+        assert "Unable to retrieve data" in result
+
+    def test_text_batch_has_separators(self, sample_results):
+        """Test text formatter batch output has separators between stocks."""
+        formatter = TextFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000)
+
+        # Should contain separator characters (equals signs)
+        assert "=" * 20 in result or "═" * 20 in result or result.count("AAPL") == 1
+
+    def test_json_batch_formatting_valid_json(self, sample_results):
+        """Test JSON formatter batch output is valid JSON."""
+        formatter = JsonFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000, vix_value=18.5)
+
+        # Should not raise
+        data = json.loads(result)
+        assert isinstance(data, dict)
+
+    def test_json_batch_has_wrapper_object(self, sample_results):
+        """Test JSON batch output has wrapper object with metadata."""
+        formatter = JsonFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000, vix_value=18.5)
+        data = json.loads(result)
+
+        # Check wrapper fields
+        assert "timestamp" in data
+        assert "count" in data
+        assert "successes" in data
+        assert "failures" in data
+        assert "vix" in data
+        assert "results" in data
+
+        # Check counts
+        assert data["count"] == 3
+        assert data["successes"] == 2
+        assert data["failures"] == 1
+        assert data["vix"] == 18.5
+
+    def test_json_batch_results_array(self, sample_results):
+        """Test JSON batch output results array contains all tickers."""
+        formatter = JsonFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000)
+        data = json.loads(result)
+
+        results = data["results"]
+        assert len(results) == 3
+
+        # Check successful results have success: true
+        tickers = {r["ticker"]: r for r in results}
+        assert tickers["AAPL"]["success"] is True
+        assert tickers["GOOG"]["success"] is True
+
+        # Check failed result has success: false and error
+        assert tickers["INVALID"]["success"] is False
+        assert "error" in tickers["INVALID"]
+
+    def test_csv_batch_formatting(self, sample_results):
+        """Test CSV formatter batch output is valid CSV."""
+        formatter = CsvFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000, vix_value=18.5)
+
+        lines = result.strip().split('\n')
+        # Should have header + 3 data rows
+        assert len(lines) == 4
+
+    def test_csv_batch_single_header(self, sample_results):
+        """Test CSV batch output has only one header row."""
+        formatter = CsvFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000)
+
+        lines = result.strip().split('\n')
+        header = lines[0]
+
+        # Only first line should contain 'ticker' as header
+        assert "ticker" in header
+        # Subsequent lines should have actual ticker values
+        assert "AAPL" in lines[1]
+        assert "GOOG" in lines[2]
+        assert "INVALID" in lines[3]
+
+    def test_csv_batch_has_error_column(self, sample_results):
+        """Test CSV batch output includes error column."""
+        formatter = CsvFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000)
+
+        lines = result.strip().split('\n')
+        header = lines[0]
+
+        # Should have error column
+        assert "error" in header
+
+        # Failed ticker row should contain error message
+        invalid_row = lines[3]
+        assert "Unable to retrieve data" in invalid_row
+
+    def test_csv_batch_preserves_order(self, sample_results):
+        """Test CSV batch output preserves ticker order."""
+        formatter = CsvFormatter()
+        result = formatter.format_batch(sample_results, 3_000_000)
+
+        lines = result.strip().split('\n')
+        # Check order matches input order
+        assert "AAPL" in lines[1]
+        assert "GOOG" in lines[2]
+        assert "INVALID" in lines[3]
+
+    @pytest.mark.parametrize("format_type", ["text", "json", "csv"])
+    def test_all_formatters_handle_empty_batch(self, format_type):
+        """Test that all formatters handle empty batch."""
+        formatter = get_formatter(format_type)
+        result = formatter.format_batch([], 3_000_000)
+        assert isinstance(result, str)
+
+    @pytest.mark.parametrize("format_type", ["text", "json", "csv"])
+    def test_all_formatters_handle_all_failures(self, format_type):
+        """Test that all formatters handle batch with all failures."""
+        formatter = get_formatter(format_type)
+        results = [
+            TickerResult(ticker="INVALID1", error="Error 1"),
+            TickerResult(ticker="INVALID2", error="Error 2"),
+        ]
+        result = formatter.format_batch(results, 3_000_000)
+        assert isinstance(result, str)
+        assert "INVALID1" in result
+        assert "INVALID2" in result

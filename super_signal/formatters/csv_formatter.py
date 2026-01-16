@@ -7,12 +7,15 @@ suitable for importing into spreadsheets and data analysis tools.
 import csv
 import io
 import datetime
-from typing import Optional, List, Any
+from typing import Optional, List, Any, TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from .base import BaseFormatter
 from .display import calculate_relative_volume
 from ..models import StockInfo, RiskAnalysis
+
+if TYPE_CHECKING:
+    from ..cli import TickerResult
 
 
 class CsvFormatter(BaseFormatter):
@@ -154,3 +157,45 @@ class CsvFormatter(BaseFormatter):
         """
         now_est = datetime.datetime.now(ZoneInfo("America/New_York"))
         return now_est.isoformat()
+
+    def format_batch(
+        self,
+        results: List["TickerResult"],
+        float_threshold: int,
+        vix_value: Optional[float] = None
+    ) -> str:
+        """Format multiple ticker results as CSV with single header and N rows.
+
+        Args:
+            results: List of TickerResult objects
+            float_threshold: Minimum float threshold (unused in CSV)
+            vix_value: Current VIX index value (optional)
+
+        Returns:
+            CSV string with header row and one data row per ticker
+        """
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Write header row with error column added at the end
+        headers = [col[0] for col in self.COLUMNS] + ["error"]
+        writer.writerow(headers)
+
+        # Write data rows
+        for result in results:
+            if result.success:
+                values = [
+                    self._format_value(col[1](
+                        result.stock_info, result.risk_analysis, vix_value
+                    ))
+                    for col in self.COLUMNS
+                ]
+                values.append("")  # No error
+            else:
+                # For failed tickers, fill with ticker and empty values
+                values = [result.ticker]  # ticker column
+                values.extend([""] * (len(self.COLUMNS) - 1))  # other columns
+                values.append(result.error or "Unknown error")  # error column
+            writer.writerow(values)
+
+        return output.getvalue().rstrip('\r\n')

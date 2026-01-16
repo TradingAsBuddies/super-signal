@@ -5,9 +5,12 @@ a factory function to get the appropriate formatter.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List, TYPE_CHECKING
 
 from ..models import StockInfo, RiskAnalysis
+
+if TYPE_CHECKING:
+    from ..cli import TickerResult
 
 
 class BaseFormatter(ABC):
@@ -37,6 +40,50 @@ class BaseFormatter(ABC):
             Formatted string output
         """
         pass
+
+    def format_batch(
+        self,
+        results: List["TickerResult"],
+        float_threshold: int,
+        vix_value: Optional[float] = None
+    ) -> str:
+        """Format multiple ticker results.
+
+        Default implementation formats each result separately and joins them.
+        Subclasses can override for format-specific batch handling.
+
+        Args:
+            results: List of TickerResult objects
+            float_threshold: Minimum float threshold for risk highlighting
+            vix_value: Current VIX index value (optional)
+
+        Returns:
+            Formatted string output for all results
+        """
+        outputs = []
+        for result in results:
+            if result.success:
+                outputs.append(self.format(
+                    result.stock_info,
+                    result.risk_analysis,
+                    float_threshold,
+                    vix_value
+                ))
+            else:
+                outputs.append(self.format_error(result.ticker, result.error))
+        return "\n".join(outputs)
+
+    def format_error(self, ticker: str, error: Optional[str]) -> str:
+        """Format an error result for a ticker.
+
+        Args:
+            ticker: Stock ticker symbol
+            error: Error message
+
+        Returns:
+            Formatted error string
+        """
+        return f"Error for {ticker}: {error or 'Unknown error'}"
 
 
 def get_formatter(format_type: str) -> BaseFormatter:

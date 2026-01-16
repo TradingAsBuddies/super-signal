@@ -7,6 +7,9 @@ with colored terminal output.
 import os
 import sys
 import logging
+from dataclasses import dataclass
+from typing import Optional, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .fetchers.yahoo_finance import fetch_stock_info, fetch_vix, is_adr_yahoo
 from .fetchers.finviz import determine_adr_status, get_directors
@@ -14,8 +17,58 @@ from .analyzers import analyze_stock_risks
 from .formatters.display import print_stock_summary
 from .formatters import get_formatter
 from .config import ANSIColor, RED_FLAGS, DISPLAY_CONFIG
+from .models import StockInfo, RiskAnalysis
 
 logger = logging.getLogger("super_signal.cli")
+
+
+@dataclass
+class TickerResult:
+    """Result of processing a single ticker.
+
+    Attributes:
+        ticker: Stock ticker symbol
+        stock_info: Stock information if successful
+        risk_analysis: Risk analysis if successful
+        error: Error message if failed
+    """
+    ticker: str
+    stock_info: Optional[StockInfo] = None
+    risk_analysis: Optional[RiskAnalysis] = None
+    error: Optional[str] = None
+
+    @property
+    def success(self) -> bool:
+        """Check if the ticker was processed successfully."""
+        return self.stock_info is not None
+
+
+def normalize_tickers(ticker_args: List[str]) -> List[str]:
+    """Normalize ticker arguments into a flat list of unique tickers.
+
+    Handles both comma-separated values and multiple -t flags.
+
+    Args:
+        ticker_args: List of ticker arguments (may contain commas)
+
+    Returns:
+        Deduplicated list of uppercase ticker symbols preserving first occurrence order
+
+    Examples:
+        >>> normalize_tickers(["AAPL,GOOG", "MSFT"])
+        ['AAPL', 'GOOG', 'MSFT']
+        >>> normalize_tickers(["AAPL", "AAPL,GOOG"])
+        ['AAPL', 'GOOG']
+    """
+    seen = set()
+    result = []
+    for arg in ticker_args:
+        for ticker in arg.split(","):
+            ticker = ticker.strip().upper()
+            if ticker and ticker not in seen:
+                seen.add(ticker)
+                result.append(ticker)
+    return result
 
 
 def clear_screen() -> None:
@@ -99,6 +152,139 @@ def run_for_ticker(ticker_symbol: str, output_format: str = "text") -> bool:
     except Exception as e:
         print(f"Error retrieving data for {ticker_symbol}: {e}", file=sys.stderr)
         logger.exception(f"Unexpected error screening {ticker_symbol}")
+        return False
+
+
+def fetch_ticker_data(ticker_symbol: str) -> TickerResult:
+    """Fetch and analyze data for a single ticker.
+
+    This is a thread-safe function that can be called in parallel.
+
+    Args:
+        ticker_symbol: Stock ticker symbol to process
+
+    Returns:
+        TickerResult with either stock_info/risk_analysis or error
+    """
+    ticker_symbol = ticker_symbol.strip().upper()
+    if not ticker_symbol:
+        return TickerResult(ticker=ticker_symbol, error="Empty ticker symbol")
+
+    try:
+        logger.info(f"Fetching data for {ticker_symbol}")
+
+        # Fetch stock info from Yahoo Finance
+        stock_info = fetch_stock_info(ticker_symbol)
+
+        if stock_info is None:
+            logger.error(f"Failed to fetch stock info for {ticker_symbol}")
+            return TickerResult(
+                ticker=ticker_symbol,
+                error="Unable to retrieve data"
+            )
+
+        # Determine ADR status
+        yahoo_adr_check = is_adr_yahoo(stock_info)
+        stock_info.is_adr = determine_adr_status(ticker_symbol, yahoo_adr_check)
+
+        # Get directors
+        stock_info.directors = get_directors(
+            ticker_symbol,
+            max_count=DISPLAY_CONFIG.directors_max_count
+        )
+
+        # Analyze risks
+        risk_analysis = analyze_stock_risks(stock_info)
+
+        logger.info(f"Successfully fetched data for {ticker_symbol}")
+        return TickerResult(
+            ticker=ticker_symbol,
+            stock_info=stock_info,
+            risk_analysis=risk_analysis
+        )
+
+    except Exception as e:
+        logger.exception(f"Error fetching data for {ticker_symbol}")
+        return TickerResult(ticker=ticker_symbol, error=str(e))
+
+
+def run_for_tickers(
+    tickers: List[str],
+    output_format: str = "text",
+    max_workers: int = 10
+) -> bool:
+    """Run stock screening for multiple tickers.
+
+    Args:
+        tickers: List of stock ticker symbols to screen
+        output_format: Output format ('text', 'json', or 'csv')
+        max_workers: Maximum number of concurrent fetches
+
+    Returns:
+        True if at least one ticker succeeded, False if all failed
+    """
+    if not tickers:
+        print("No tickers provided.", file=sys.stderr)
+        return False
+
+    # For single ticker, use original behavior for backward compatibility
+    if len(tickers) == 1:
+        return run_for_ticker(tickers[0], output_format=output_format)
+
+    try:
+        logger.info(f"Starting batch screening for {len(tickers)} tickers")
+
+        # Fetch VIX once before processing tickers
+        vix_value = fetch_vix()
+
+        # Fetch ticker data in parallel, preserving order
+        results: List[TickerResult] = []
+        ticker_to_index = {t: i for i, t in enumerate(tickers)}
+
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(tickers))) as executor:
+            future_to_ticker = {
+                executor.submit(fetch_ticker_data, ticker): ticker
+                for ticker in tickers
+            }
+
+            # Collect results as they complete
+            result_map = {}
+            for future in as_completed(future_to_ticker):
+                ticker = future_to_ticker[future]
+                try:
+                    result = future.result()
+                    result_map[ticker] = result
+                except Exception as e:
+                    logger.exception(f"Unexpected error processing {ticker}")
+                    result_map[ticker] = TickerResult(ticker=ticker, error=str(e))
+
+        # Reorder results to match original ticker order
+        results = [result_map[t] for t in tickers]
+
+        # Format and display results using batch formatter
+        formatter = get_formatter(output_format)
+        output = formatter.format_batch(
+            results,
+            RED_FLAGS.min_free_float,
+            vix_value
+        )
+        print(output)
+
+        # Return True if at least one ticker succeeded
+        successes = sum(1 for r in results if r.success)
+        logger.info(
+            f"Batch screening complete: {successes}/{len(tickers)} succeeded"
+        )
+        return successes > 0
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.", file=sys.stderr)
+        logger.info("User cancelled batch operation")
+        return False
+
+    except Exception as e:
+        print(f"Error during batch processing: {e}", file=sys.stderr)
+        logger.exception("Unexpected error in batch screening")
         return False
 
 

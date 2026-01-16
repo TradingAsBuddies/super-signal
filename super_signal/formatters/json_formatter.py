@@ -6,12 +6,15 @@ scripts, APIs, and programmatic consumption.
 
 import json
 import datetime
-from typing import Optional, Any, Dict
+from typing import Optional, Any, Dict, List, TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from .base import BaseFormatter
 from .display import calculate_relative_volume
 from ..models import StockInfo, RiskAnalysis
+
+if TYPE_CHECKING:
+    from ..cli import TickerResult
 
 
 class JsonFormatter(BaseFormatter):
@@ -35,6 +38,25 @@ class JsonFormatter(BaseFormatter):
         Returns:
             JSON string with structured stock data
         """
+        data = self._build_data_dict(stock_info, risk_analysis, vix_value)
+        return json.dumps(data, indent=2)
+
+    def _build_data_dict(
+        self,
+        stock_info: StockInfo,
+        risk_analysis: RiskAnalysis,
+        vix_value: Optional[float] = None
+    ) -> Dict[str, Any]:
+        """Build the data dictionary for a single stock.
+
+        Args:
+            stock_info: Stock information data
+            risk_analysis: Risk analysis results
+            vix_value: Current VIX index value (optional)
+
+        Returns:
+            Dictionary with structured stock data
+        """
         now_est = datetime.datetime.now(ZoneInfo("America/New_York"))
         timestamp = now_est.isoformat()
 
@@ -43,8 +65,9 @@ class JsonFormatter(BaseFormatter):
             stock_info.average_volume_10days
         )
 
-        data: Dict[str, Any] = {
+        return {
             "ticker": stock_info.ticker,
+            "success": True,
             "company": {
                 "name": stock_info.get_display_name(),
                 "short_name": stock_info.short_name,
@@ -113,7 +136,56 @@ class JsonFormatter(BaseFormatter):
             "timestamp": timestamp,
         }
 
-        return json.dumps(data, indent=2)
+    def format_batch(
+        self,
+        results: List["TickerResult"],
+        float_threshold: int,
+        vix_value: Optional[float] = None
+    ) -> str:
+        """Format multiple ticker results as a JSON wrapper object.
+
+        Args:
+            results: List of TickerResult objects
+            float_threshold: Minimum float threshold for risk highlighting
+            vix_value: Current VIX index value (optional)
+
+        Returns:
+            JSON string with wrapper object containing results array
+        """
+        now_est = datetime.datetime.now(ZoneInfo("America/New_York"))
+        timestamp = now_est.isoformat()
+
+        result_data = []
+        successes = 0
+        failures = 0
+
+        for result in results:
+            if result.success:
+                data = self._build_data_dict(
+                    result.stock_info,
+                    result.risk_analysis,
+                    vix_value
+                )
+                result_data.append(data)
+                successes += 1
+            else:
+                result_data.append({
+                    "ticker": result.ticker,
+                    "success": False,
+                    "error": result.error or "Unknown error"
+                })
+                failures += 1
+
+        wrapper = {
+            "timestamp": timestamp,
+            "count": len(results),
+            "successes": successes,
+            "failures": failures,
+            "vix": vix_value,
+            "results": result_data
+        }
+
+        return json.dumps(wrapper, indent=2)
 
     @staticmethod
     def _to_percent(value: Optional[float]) -> Optional[float]:
