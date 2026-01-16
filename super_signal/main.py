@@ -32,8 +32,11 @@ def parse_arguments():
     parser.add_argument(
         "--ticker",
         "-t",
-        type=str,
-        help="Ticker symbol to screen (skips interactive mode)"
+        action="append",
+        dest="tickers",
+        metavar="TICKER",
+        help="Ticker symbol(s) to screen. Can be specified multiple times "
+             "(-t AAPL -t GOOG) or comma-separated (-t AAPL,GOOG)"
     )
 
     parser.add_argument(
@@ -72,10 +75,11 @@ def main():
 
     # Launch CLI interface
     try:
-        if args.ticker:
-            # Single ticker mode
-            from .cli import run_for_ticker
-            success = run_for_ticker(args.ticker, output_format=args.format)
+        if args.tickers:
+            # Ticker mode (single or multiple)
+            from .cli import run_for_tickers, normalize_tickers
+            tickers = normalize_tickers(args.tickers)
+            success = run_for_tickers(tickers, output_format=args.format)
             sys.exit(0 if success else 1)
         else:
             # Interactive mode (always uses text format)
