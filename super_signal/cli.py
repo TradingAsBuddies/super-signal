@@ -12,6 +12,7 @@ from .fetchers.yahoo_finance import fetch_stock_info, fetch_vix, is_adr_yahoo
 from .fetchers.finviz import determine_adr_status, get_directors
 from .analyzers import analyze_stock_risks
 from .formatters.display import print_stock_summary
+from .formatters import get_formatter
 from .config import ANSIColor, RED_FLAGS, DISPLAY_CONFIG
 
 logger = logging.getLogger("super_signal.cli")
@@ -32,11 +33,12 @@ def set_console_title(title: str) -> None:
         os.system(f"title {title}")
 
 
-def run_for_ticker(ticker_symbol: str) -> bool:
+def run_for_ticker(ticker_symbol: str, output_format: str = "text") -> bool:
     """Run stock screening for a single ticker.
 
     Args:
         ticker_symbol: Stock ticker symbol to screen
+        output_format: Output format ('text', 'json', or 'csv')
 
     Returns:
         True if successful, False if an error occurred
@@ -76,13 +78,15 @@ def run_for_ticker(ticker_symbol: str) -> bool:
         # Fetch VIX index
         vix_value = fetch_vix()
 
-        # Display results
-        print_stock_summary(
+        # Format and display results
+        formatter = get_formatter(output_format)
+        output = formatter.format(
             stock_info,
             risk_analysis,
             RED_FLAGS.min_free_float,
             vix_value
         )
+        print(output)
 
         logger.info(f"Successfully completed screening for {ticker_symbol}")
         return True

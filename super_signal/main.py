@@ -29,6 +29,14 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "--format",
+        "-f",
+        choices=["text", "json", "csv"],
+        default="text",
+        help="Output format: text (colored terminal), json, or csv (default: text)"
+    )
+
+    parser.add_argument(
         "--log-level",
         "-l",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -59,10 +67,10 @@ def main():
         if args.ticker:
             # Single ticker mode
             from .cli import run_for_ticker
-            success = run_for_ticker(args.ticker)
+            success = run_for_ticker(args.ticker, output_format=args.format)
             sys.exit(0 if success else 1)
         else:
-            # Interactive mode
+            # Interactive mode (always uses text format)
             run_cli()
             sys.exit(0)
 
