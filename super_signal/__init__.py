@@ -13,7 +13,7 @@ Modules:
     main: Application entry point
 """
 
-__version__ = "2.4.0"
+__version__ = "2.4.1"
 __author__ = "Super Signal Team"
 
 from .models import StockInfo, RiskFlag, RiskAnalysis, RiskSeverity
