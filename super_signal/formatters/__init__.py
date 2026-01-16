@@ -1,7 +1,7 @@
 """Formatters package for displaying stock information.
 
 This package provides modules for formatting and displaying stock data
-with ANSI color codes for terminal output.
+in various formats: text (ANSI colored), JSON, and CSV.
 """
 
 from .display import (
@@ -25,8 +25,13 @@ from .display import (
     format_risk_details,
     print_stock_summary,
 )
+from .base import BaseFormatter, get_formatter
+from .text_formatter import TextFormatter
+from .json_formatter import JsonFormatter
+from .csv_formatter import CsvFormatter
 
 __all__ = [
+    # Display functions
     "format_number",
     "format_percent",
     "colorize_country",
@@ -46,4 +51,10 @@ __all__ = [
     "format_executives",
     "format_risk_details",
     "print_stock_summary",
+    # Formatter classes and factory
+    "BaseFormatter",
+    "get_formatter",
+    "TextFormatter",
+    "JsonFormatter",
+    "CsvFormatter",
 ]
